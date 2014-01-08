@@ -9,7 +9,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.zip.GZIPInputStream;
 
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
@@ -61,6 +63,8 @@ public class MainActivity extends Activity {
             }
         };
 
+        search(findViewById(R.id.button1));
+        findViewById(R.id.button1).requestFocus();
     }
 
     @Override
@@ -82,7 +86,7 @@ public class MainActivity extends Activity {
         ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
         if (networkInfo != null && networkInfo.isConnected()) {
-            new DownloadResultsTask().execute(et.getText().toString());
+            new DownloadResultsTask(et.getText().toString()).execute();
         } else {
             Toast err = Toast.makeText(getApplicationContext(), getResources().getString(R.string.noconn), Toast.LENGTH_SHORT);
             err.show();
@@ -99,18 +103,28 @@ public class MainActivity extends Activity {
 
     private class DownloadResultsTask extends AsyncTask<String, Void, String> {
 
+        private String query;
+
+        public DownloadResultsTask(String query) {
+            this.query = query;
+        }
+
         @Override
         protected String doInBackground(String... params) {
             StringBuilder builder = new StringBuilder();
-            String query = "";
+            String encodedQuery = "";
             try {
-                query = URLEncoder.encode(params[0], "utf-8");
+                encodedQuery = URLEncoder.encode(query, "utf-8");
             } catch (UnsupportedEncodingException e1) {
                 // TODO Auto-generated catch block
                 e1.printStackTrace();
             }
-            String url = "http://api.rottentomatoes.com/api/public/v1.0/movies.json?q=" + query
+
+            String url = "http://api.rottentomatoes.com/api/public/v1.0/movies.json?q=" + encodedQuery
                     + "&page_limit=10&page=1&apikey=7er6em5vc84hq6my9kr3t6ga";
+            if (encodedQuery.equals("")) {
+                url = "http://api.rottentomatoes.com/api/public/v1.0/lists/movies/box_office.json?limit=16&country=us&apikey=7er6em5vc84hq6my9kr3t6ga";
+            }
             try {
                 HttpClient client = new DefaultHttpClient();
                 HttpGet get = new HttpGet(url);
@@ -119,15 +133,22 @@ public class MainActivity extends Activity {
                 if (status.getStatusCode() == 200) {
                     HttpEntity entity = response.getEntity();
                     InputStream is = entity.getContent();
+                    Header[] headers = response.getHeaders("Content-Encoding");
+                    if (headers.length > 0) {
+                        if (headers[0].getValue().equals("gzip"))
+                            is = new GZIPInputStream(is);
+                    }
                     BufferedReader br = new BufferedReader(new InputStreamReader(is));
                     String line;
                     while ((line = br.readLine()) != null) {
                         builder.append(line);
                     }
                 } else {
+                    Log.e(">:C", "failed to download");
                     return "error: failed to download";
                 }
             } catch (IOException e) {
+                Log.e(">:C", "ioexception");
                 return "error: ioexception";
             }
             return builder.toString();
@@ -146,7 +167,7 @@ public class MainActivity extends Activity {
                 }
                 setListContents(movieList.toArray(new MovieData[movieList.size()]));
             } catch (JSONException e) {
-                // error
+                Log.e(">:C", "jsonexception");
             }
         }
     }
