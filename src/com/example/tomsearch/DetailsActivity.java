@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.HashMap;
 import java.util.zip.GZIPInputStream;
 
 import org.apache.http.Header;
@@ -36,6 +37,7 @@ import android.widget.TextView;
 public class DetailsActivity extends Activity {
 
     private LruCache<String, Bitmap> imageCache;
+    private HashMap<String, Integer> ratingMap = new HashMap<String, Integer>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +55,11 @@ public class DetailsActivity extends Activity {
 
             ((TSApplication) getApplication()).setImageCache(imageCache);
         }
+
+        ratingMap.put("Certified Fresh", R.drawable.cfresh);
+        ratingMap.put("Fresh", R.drawable.fresh);
+        ratingMap.put("Rotten", R.drawable.rotten);
+        ratingMap.put("Upright", R.drawable.upright);
 
         getActionBar().setDisplayHomeAsUpEnabled(true);
 
@@ -159,6 +166,15 @@ public class DetailsActivity extends Activity {
                 TextView audienceRating = (TextView) findViewById(R.id.audiencerating);
                 score = (Integer) jo.getJSONObject("ratings").get("audience_score");
                 audienceRating.setText("Audience Score: " + (score == -1 ? "N/A" : score + "%"));
+
+                String rating = jo.getJSONObject("ratings").get("critics_rating").toString();
+                Integer ratingId = ratingMap.get(rating);
+                if (ratingId != null)
+                    criticsRating.setCompoundDrawablesWithIntrinsicBounds(ratingId, 0, 0, 0);
+                rating = jo.getJSONObject("ratings").get("audience_rating").toString();
+                ratingId = ratingMap.get(rating);
+                if (ratingId != null)
+                    audienceRating.setCompoundDrawablesWithIntrinsicBounds(ratingId, 0, 0, 0);
 
                 spinner.setVisibility(View.GONE);
                 descriptionContainer.setVisibility(View.VISIBLE);
