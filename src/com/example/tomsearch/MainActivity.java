@@ -24,6 +24,7 @@ import org.json.JSONObject;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
@@ -37,6 +38,8 @@ import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -47,6 +50,9 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
+    public final static String MOVIE_ID_MESSAGE = "com.example.tomsearch.MOVIE_ID";
+    public final static String MOVIE_TITLE_MESSAGE = "com.example.tomsearch.MOVIE_TITLE";
+
     private RelativeLayout rl;
     private LruCache<String, Bitmap> imageCache;
 
@@ -55,16 +61,26 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        int cacheMemory = ((int) (Runtime.getRuntime().maxMemory() / 1024)) / 8;
-        imageCache = new LruCache<String, Bitmap>(cacheMemory) {
-            @Override
-            protected int sizeOf(String key, Bitmap bmp) {
-                return bmp.getByteCount() / 1024;
-            }
-        };
+        imageCache = ((TSApplication) getApplication()).getImageCache();
+        if (imageCache == null) {
+            int cacheMemory = ((int) (Runtime.getRuntime().maxMemory() / 1024)) / 8;
+            imageCache = new LruCache<String, Bitmap>(cacheMemory) {
+                @Override
+                protected int sizeOf(String key, Bitmap bmp) {
+                    return bmp.getByteCount() / 1024;
+                }
+            };
 
+            ((TSApplication) getApplication()).setImageCache(imageCache);
+        }
         search(findViewById(R.id.button1));
-        findViewById(R.id.button1).requestFocus();
+        final ListView lv = (ListView) findViewById(R.id.listView1);
+        lv.setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                showDetails((MovieData) lv.getItemAtPosition(position));
+            }
+        });
     }
 
     @Override
@@ -92,6 +108,13 @@ public class MainActivity extends Activity {
             err.show();
             rl.setVisibility(View.GONE);
         }
+    }
+
+    public void showDetails(MovieData movie) {
+        Intent intent = new Intent(this, DetailsActivity.class);
+        intent.putExtra(MOVIE_ID_MESSAGE, movie.getId());
+        intent.putExtra(MOVIE_TITLE_MESSAGE, movie.getName());
+        startActivity(intent);
     }
 
     public void setListContents(MovieData[] movies) {
@@ -189,9 +212,9 @@ public class MainActivity extends Activity {
             LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
             View rowView = inflater.inflate(R.layout.movie_list_layout, parent, false);
-            TextView titleView = (TextView) rowView.findViewById(R.id.textView1);
-            TextView subView = (TextView) rowView.findViewById(R.id.textView2);
-            ImageView imageView = (ImageView) rowView.findViewById(R.id.imageView1);
+            TextView titleView = (TextView) rowView.findViewById(R.id.movietitle);
+            TextView subView = (TextView) rowView.findViewById(R.id.moviedescription);
+            ImageView imageView = (ImageView) rowView.findViewById(R.id.movieposter);
             MovieData data = values[position];
             Bitmap bmp = imageCache.get(data.getId());
             if (bmp == null) {
