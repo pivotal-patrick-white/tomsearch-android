@@ -34,7 +34,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="0.3"
                 android:gravity="center_horizontal"
-                android:text="@string/hello_world"
+                android:text=""
                 android:textAppearance="?android:attr/textAppearanceLarge"
                 android:textStyle="bold" />
 
@@ -47,34 +47,57 @@
             android:orientation="vertical" >
 
             <TextView
-                android:id="@+id/audiencerating"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="0.5"
-                android:drawableLeft="@drawable/ic_launcher"
-                android:gravity="center_vertical"
-                android:text="@string/hello_world"
-                android:textAppearance="?android:attr/textAppearanceLarge" />
-
-            <TextView
                 android:id="@+id/criticrating"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="0.5"
                 android:drawableLeft="@drawable/ic_launcher"
                 android:gravity="center_vertical"
-                android:text="@string/hello_world"
+                android:textAppearance="?android:attr/textAppearanceLarge" />
+
+            <TextView
+                android:id="@+id/audiencerating"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.5"
+                android:drawableLeft="@drawable/ic_launcher"
+                android:gravity="center_vertical"
+                android:text=""
                 android:textAppearance="?android:attr/textAppearanceLarge" />
 
         </LinearLayout>
 
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/moviedescription"
+    <RelativeLayout
+        android:id="@+id/spinnerContainer"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="0.6"
-        android:text="@string/hello_world" />
+        android:layout_weight="0.4" >
+
+        <ProgressBar
+            android:id="@+id/progressBar1"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerInParent="true"
+            android:visibility="visible" />
+    </RelativeLayout>
+
+    <ScrollView
+        android:id="@+id/descriptionContainer"
+        android:layout_width="fill_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.6" 
+        android:visibility="gone" >
+
+        <TextView
+            android:id="@+id/moviedescription"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="" />
+
+    </ScrollView>
 
 </LinearLayout>
